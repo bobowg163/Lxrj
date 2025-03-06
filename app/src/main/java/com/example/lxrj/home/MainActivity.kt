@@ -17,10 +17,13 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -64,6 +68,7 @@ class MainActivity : ComponentActivity() {
                         MainScreen(
                             widthSize = widthSizeClass,
                             onExploreItemClicked = {
+
                             },
                             onDateSelectionClicked = {
 
@@ -79,8 +84,8 @@ class MainActivity : ComponentActivity() {
 }
 
 sealed class Routes(val route: String) {
-    object Home : Routes("home")
-    object Calender : Routes("calender")
+    data object Home : Routes("home")
+    data object Calender : Routes("calender")
 }
 
 @VisibleForTesting
@@ -98,14 +103,24 @@ fun MainScreen(
         color = MaterialTheme.colorScheme.primary
     ) {
         val transitionState = remember { MutableTransitionState(mainViewModel.shownSplash.value) }
-        val transition = updateTransition(transitionState = transitionState, label = "splashTransition")
-        val splashAlpha by transition.animateFloat(transitionSpec = { tween(durationMillis = 100)}, label = "splashAlpha") {
+        val transition =
+            updateTransition(transitionState = transitionState, label = "splashTransition")
+        val splashAlpha by transition.animateFloat(
+            transitionSpec = { tween(durationMillis = 100) },
+            label = "splashAlpha"
+        ) {
             if (it == SplashState.Shown) 1f else 0f
         }
-        val contentAlpha by transition.animateFloat (transitionSpec = { tween(durationMillis = 300)}, label = "splashContent"){
+        val contentAlpha by transition.animateFloat(
+            transitionSpec = { tween(durationMillis = 300) },
+            label = "splashContent"
+        ) {
             if (it == SplashState.Shown) 0f else 1f
         }
-        val contentTopPadding by transition.animateDp(transitionSpec = { spring(stiffness = StiffnessLow) }, label = "splashContent") {
+        val contentTopPadding by transition.animateDp(
+            transitionSpec = { spring(stiffness = StiffnessLow) },
+            label = "splashContent"
+        ) {
             if (it == SplashState.Shown) 100.dp else 0.dp
         }
 
@@ -114,9 +129,40 @@ fun MainScreen(
                 modifier = Modifier.alpha(splashAlpha),
                 onTimeout = { transitionState.targetState = SplashState.Completed }
             )
+
+            MainContent(
+                modifier = Modifier.alpha(contentAlpha),
+                topPadding = contentTopPadding,
+                widthSize = widthSize,
+                onExploreItemClicked = onExploreItemClicked,
+                onDateSelectionClicked = onDateSelectionClicked,
+                viewModel = mainViewModel
+            )
         }
 
     }
+}
+
+@Composable
+private fun MainContent(
+    modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,
+    widthSize: WindowWidthSizeClass,
+    onExploreItemClicked: OnExploreItemClicked,
+    onDateSelectionClicked: () -> Unit,
+    viewModel: MainViewModel
+) {
+    Column(modifier = modifier) {
+        Spacer(Modifier.padding(top = topPadding))
+        CraneHome(
+            widthSize = widthSize,
+            modifier = modifier,
+            onExploreItemClicked = onExploreItemClicked,
+            onDateSelectionClicked = onDateSelectionClicked,
+            viewModel = viewModel
+        )
+    }
+
 }
 
 
